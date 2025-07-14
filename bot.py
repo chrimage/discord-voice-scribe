@@ -7,8 +7,6 @@ import tempfile
 import time
 from datetime import datetime, timedelta
 from typing import Dict, Optional
-import uuid
-import jwt
 from pathlib import Path
 
 from config import Config, setup_logging
@@ -40,7 +38,7 @@ class VoiceRecordingBot(commands.Bot):
             Config.AUDIO_QUALITY, 
             Config.AUDIO_FORMAT
         )
-        self.file_server = FileServer(Config.RECORDINGS_PATH, Config.JWT_SECRET)
+        self.file_server = FileServer(Config.RECORDINGS_PATH)
         
         # Recording state
         self.active_recordings: Dict[int, Dict] = {}  # guild_id -> recording_info
@@ -222,13 +220,16 @@ class VoiceRecordingBot(commands.Bot):
     async def cleanup_task(self):
         """Periodic cleanup task"""
         try:
-            # Clean up expired download tokens
+            # Clean up expired download tokens from database
             await self.db.cleanup_expired_tokens()
+            
+            # Clean up expired tokens from file server memory
+            expired_count = self.file_server.cleanup_expired_tokens()
             
             # Clean up temporary files
             self.audio_processor.cleanup_temp_files()
             
-            logger.info("Cleanup task completed")
+            logger.info(f"Cleanup task completed. Cleaned {expired_count} expired tokens.")
             
         except Exception as e:
             logger.error(f"Error in cleanup task: {e}")

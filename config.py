@@ -13,10 +13,8 @@ class Config:
     if not DISCORD_TOKEN:
         raise ValueError("DISCORD_TOKEN environment variable is required")
     
-    # JWT Configuration
-    JWT_SECRET = os.getenv('JWT_SECRET')
-    if not JWT_SECRET:
-        raise ValueError("JWT_SECRET environment variable is required")
+    # JWT Configuration (optional for now)
+    JWT_SECRET = os.getenv('JWT_SECRET', 'not-used')
     
     # Database Configuration
     DATABASE_PATH = os.getenv('DATABASE_PATH', './data/recordings.db')
@@ -45,8 +43,7 @@ class Config:
         if not cls.DISCORD_TOKEN:
             errors.append("DISCORD_TOKEN is required")
         
-        if not cls.JWT_SECRET:
-            errors.append("JWT_SECRET is required")
+        # JWT_SECRET is optional for now
         
         if not os.path.exists(os.path.dirname(cls.DATABASE_PATH)):
             try:

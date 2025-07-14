@@ -6,7 +6,7 @@ A Discord bot that records multi-user voice conversations, processes them into m
 
 - 🎙️ Multi-user voice recording with individual stream capture
 - 🔄 Automatic audio synchronization and mixing
-- 📥 Secure download links with JWT authentication
+- 📥 Secure download links with random token authentication
 - 🗄️ SQLite database for recording metadata
 - 🐳 Docker containerization for easy deployment
 - 🛡️ Security-focused file serving with token-based access
@@ -35,7 +35,6 @@ A Discord bot that records multi-user voice conversations, processes them into m
 3. **Configure environment variables:**
    Edit `.env` and set:
    - `DISCORD_TOKEN`: Your Discord bot token
-   - `JWT_SECRET`: Generate with `python -c "import secrets; print(secrets.token_urlsafe(32))"`
 
 4. **Build and run:**
    ```bash
@@ -111,7 +110,6 @@ Environment variables in `.env`:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `DISCORD_TOKEN` | Discord bot token | Required |
-| `JWT_SECRET` | JWT secret for file downloads | Required |
 | `DATABASE_PATH` | SQLite database path | `./data/recordings.db` |
 | `RECORDINGS_PATH` | Audio files storage path | `./recordings` |
 | `WEB_SERVER_HOST` | File server host | `0.0.0.0` |
@@ -123,11 +121,12 @@ Environment variables in `.env`:
 
 ## Security Features
 
-- 🔐 JWT-based download authentication
+- 🔐 Random token-based download authentication (security by obscurity)
 - 🛡️ Directory traversal protection
-- ⏱️ Time-limited download links
+- ⏱️ Time-limited download links (1 hour expiration)
 - 🔒 Non-root Docker user
 - 🚫 Secure file path validation
+- 🎲 256-bit random tokens (extremely hard to guess)
 
 ## Development
 

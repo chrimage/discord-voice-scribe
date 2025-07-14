@@ -12,7 +12,6 @@ services:
       - ./data:/app/data
     environment:
       - DISCORD_TOKEN=${DISCORD_TOKEN}
-      - JWT_SECRET=${JWT_SECRET}
       - DATABASE_PATH=/app/data/recordings.db
       - RECORDINGS_PATH=/app/recordings
       - WEB_SERVER_HOST=0.0.0.0
