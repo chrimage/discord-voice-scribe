@@ -13,13 +13,38 @@ class DatabaseManager:
     
     async def initialize(self):
         """Initialize database connection and create tables"""
-        # Ensure directory exists
-        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
-        
-        self.connection = await aiosqlite.connect(self.db_path)
-        await self.connection.execute('PRAGMA foreign_keys = ON')
-        await self.create_tables()
-        logger.info(f"Database initialized at {self.db_path}")
+        try:
+            # Ensure directory exists
+            db_dir = os.path.dirname(self.db_path)
+            if db_dir:  # Only create directory if path has a directory component
+                os.makedirs(db_dir, exist_ok=True)
+            
+            # Test write permissions
+            test_path = f"{self.db_path}.test"
+            try:
+                with open(test_path, 'w') as f:
+                    f.write('test')
+                os.remove(test_path)
+            except Exception as e:
+                raise RuntimeError(f"No write permission for database path {self.db_path}: {e}")
+            
+            # Connect to database
+            self.connection = await aiosqlite.connect(self.db_path)
+            await self.connection.execute('PRAGMA foreign_keys = ON')
+            
+            # Test database connection
+            await self.connection.execute('SELECT 1')
+            
+            # Create tables
+            await self.create_tables()
+            logger.info(f"Database initialized at {self.db_path}")
+            
+        except Exception as e:
+            logger.error(f"Database initialization failed: {e}")
+            if self.connection:
+                await self.connection.close()
+                self.connection = None
+            raise
     
     async def create_tables(self):
         """Create database tables"""

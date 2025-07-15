@@ -131,17 +131,27 @@ class AudioProcessor:
             str(output_path)
         ]
         
-        result = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-        
-        stdout, stderr = await result.communicate()
-        
-        if result.returncode != 0:
-            error_msg = stderr.decode() if stderr else "Unknown FFmpeg error"
-            raise RuntimeError(f"Audio normalization failed: {error_msg}")
+        try:
+            result = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                timeout=60  # 60 second timeout
+            )
+            
+            stdout, stderr = await result.communicate()
+            
+            if result.returncode != 0:
+                error_msg = stderr.decode() if stderr else "Unknown FFmpeg error"
+                logger.error(f"FFmpeg normalization failed for {input_path}: {error_msg}")
+                raise RuntimeError(f"Audio normalization failed: {error_msg}")
+                
+        except asyncio.TimeoutError:
+            logger.error(f"FFmpeg normalization timed out for {input_path}")
+            raise RuntimeError("Audio normalization timed out")
+        except FileNotFoundError:
+            logger.error("FFmpeg not found - ensure FFmpeg is installed")
+            raise RuntimeError("FFmpeg not found - please install FFmpeg")
     
     async def _synchronize_audio_file(self, input_path: Path, output_path: Path, target_duration: float):
         """Synchronize audio file to target duration by padding with silence"""

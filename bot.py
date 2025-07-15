@@ -51,14 +51,29 @@ class VoiceRecordingBot(commands.Bot):
         """Setup hook called when bot starts"""
         logger.info("Setting up bot...")
         
-        # Initialize database
-        await self.db.initialize()
+        try:
+            # Initialize database
+            await self.db.initialize()
+            logger.info("Database initialization successful")
+        except Exception as e:
+            logger.error(f"Database initialization failed: {e}")
+            raise RuntimeError("Failed to initialize database") from e
         
-        # Start file server
-        await self.file_server.start(Config.WEB_SERVER_HOST, Config.WEB_SERVER_PORT)
+        try:
+            # Start file server
+            await self.file_server.start(Config.WEB_SERVER_HOST, Config.WEB_SERVER_PORT)
+            logger.info("File server started successfully")
+        except Exception as e:
+            logger.error(f"File server startup failed: {e}")
+            raise RuntimeError("Failed to start file server") from e
         
-        # Start cleanup task
-        self.cleanup_task.start()
+        try:
+            # Start cleanup task
+            self.cleanup_task.start()
+            logger.info("Cleanup task started successfully")
+        except Exception as e:
+            logger.error(f"Cleanup task startup failed: {e}")
+            # Don't fail setup for cleanup task
         
         # Sync slash commands
         try:
@@ -66,6 +81,7 @@ class VoiceRecordingBot(commands.Bot):
             logger.info(f"Synced {len(synced)} slash commands")
         except Exception as e:
             logger.error(f"Failed to sync slash commands: {e}")
+            # Don't fail setup for command sync issues
         
         logger.info("Bot setup complete")
     
@@ -263,9 +279,16 @@ from commands import *
 
 if __name__ == "__main__":
     try:
+        logger.info("Starting Discord Voice Recording Bot...")
         bot.run(Config.DISCORD_TOKEN)
     except KeyboardInterrupt:
         logger.info("Bot interrupted by user")
+    except discord.LoginFailure as e:
+        logger.error(f"Discord login failed - check your DISCORD_TOKEN: {e}")
+        exit(1)
+    except discord.HTTPException as e:
+        logger.error(f"Discord HTTP error: {e}")
+        exit(1)
     except Exception as e:
-        logger.error(f"Bot crashed: {e}")
-        raise
+        logger.error(f"Bot crashed with unexpected error: {e}", exc_info=True)
+        exit(1)
