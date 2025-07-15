@@ -1,0 +1,175 @@
+# Discord Voice Recording Bot Configuration
+# Copy this file to config.yaml and update the values
+
+# Discord Bot Configuration
+discord:
+  # Your Discord bot token from https://discord.com/developers/applications
+  # Go to your application -> Bot -> Reset Token
+  token: "your_discord_bot_token_here"
+  
+  # Bot activity status
+  activity:
+    type: "listening"  # listening, playing, watching, streaming
+    name: "voice channels | /join to start recording"
+
+# Database Configuration
+database:
+  # Path to SQLite database file
+  path: "./data/recordings.db"
+  
+  # Database connection settings
+  connection:
+    timeout: 30  # seconds
+    check_same_thread: false
+
+# File Storage Configuration
+storage:
+  # Directory where recordings are stored
+  recordings_path: "./recordings"
+  
+  # Cleanup settings
+  cleanup_after_hours: 24  # Auto-delete recordings after X hours
+  
+  # File organization
+  organize_by_date: true  # Create subdirectories by date
+  max_file_size_mb: 500   # Maximum file size in MB
+
+# Audio Processing Configuration
+audio:
+  # Audio quality settings
+  quality: "192k"  # 128k, 192k, 256k, 320k
+  format: "mp3"    # mp3, wav, aac
+  sample_rate: 48000  # 44100, 48000
+  channels: 2      # 1 (mono), 2 (stereo)
+  
+  # Recording limits
+  max_duration_seconds: 7200  # 2 hours maximum
+  silence_threshold: -40      # dB threshold for silence detection
+  
+  # Processing settings
+  normalize_audio: true
+  remove_silence: false
+  fade_in_seconds: 0.5
+  fade_out_seconds: 1.0
+
+# Web Server Configuration
+web_server:
+  # Server binding
+  host: "0.0.0.0"
+  port: 8000
+  
+  # Domain configuration (optional)
+  # If not set, will use server IP address in URLs
+  domain: null  # Set to your domain name, e.g., "example.com"
+  
+  # Security settings
+  download_token_expires_hours: 1
+  max_concurrent_downloads: 10
+  
+  # SSL/TLS (for production)
+  ssl:
+    enabled: false
+    cert_file: ""
+    key_file: ""
+
+# Logging Configuration
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: "INFO"
+  
+  # Log file settings
+  file:
+    enabled: true
+    path: "./logs/bot.log"
+    max_size_mb: 10
+    backup_count: 5
+    
+  # Error log (separate from main log)
+  error_file:
+    enabled: true
+    path: "./logs/errors.log"
+    
+  # Console output
+  console:
+    enabled: true
+    format: "simple"  # simple, detailed
+    
+  # Discord library logging
+  discord_log_level: "WARNING"  # Reduce discord.py noise
+
+# Feature Flags
+features:
+  # Enable/disable specific features
+  slash_commands: true
+  voice_recording: true
+  file_serving: true
+  auto_cleanup: true
+  
+  # Experimental features
+  experimental:
+    voice_activity_detection: false
+    real_time_transcription: false
+    multi_channel_recording: false
+
+# Permissions and Security
+permissions:
+  # Who can use recording commands
+  recording:
+    required_permissions: ["connect", "speak"]  # Discord permissions
+    allowed_roles: []  # Role names (empty = all roles)
+    blocked_users: []  # User IDs to block
+    
+  # Who can download recordings
+  download:
+    creator_only: false  # Only recording creator can download
+    same_guild_only: true  # Only users from same guild
+    max_downloads_per_user: 10  # Per hour limit
+    
+  # Admin commands
+  admin:
+    required_permissions: ["manage_messages"]
+    allowed_users: []  # User IDs with admin access
+
+# Notification Settings
+notifications:
+  # When to send notifications
+  recording_started: true
+  recording_stopped: true
+  processing_complete: true
+  errors: true
+  
+  # Notification channels
+  channels:
+    # Send notifications to specific channels (channel IDs)
+    log_channel: null
+    error_channel: null
+    
+  # Mention settings
+  mentions:
+    recording_creator: true
+    participants: false
+
+# Advanced Settings
+advanced:
+  # Performance tuning
+  max_concurrent_recordings: 5
+  audio_buffer_size: 4096
+  processing_threads: 2
+  
+  # Retry settings
+  max_retries: 3
+  retry_delay_seconds: 5
+  
+  # Memory management
+  max_memory_usage_mb: 1024
+  garbage_collection_interval: 300  # seconds
+  
+  # Development settings
+  debug_mode: false
+  profiling_enabled: false
+  
+# Example usage:
+# 1. Copy this file to config.yaml
+# 2. Update the discord.token with your actual bot token
+# 3. Adjust paths and settings as needed
+# 4. Run: python3 bot.py

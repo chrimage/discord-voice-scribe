@@ -10,8 +10,11 @@ services:
     volumes:
       - ./recordings:/app/recordings
       - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config.yaml:/app/config.yaml:ro
     environment:
-      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      # Environment variables for Docker compatibility (optional with YAML config)
+      - DISCORD_TOKEN=${DISCORD_TOKEN:-}
       - DATABASE_PATH=/app/data/recordings.db
       - RECORDINGS_PATH=/app/recordings
       - WEB_SERVER_HOST=0.0.0.0

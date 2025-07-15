@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Optional
 from pathlib import Path
 
-from config import Config, setup_logging
+from config import get_config, setup_logging
 from database import DatabaseManager
 from audio_processor import AudioProcessor
 from file_server import FileServer
@@ -29,23 +29,24 @@ class VoiceRecordingBot(commands.Bot):
         super().__init__(command_prefix='!', intents=intents)
         
         # Configuration
-        Config.validate()
+        self.config = get_config()
+        self.config.validate()
         
         # Core components
-        self.db = DatabaseManager(Config.DATABASE_PATH)
+        self.db = DatabaseManager(self.config.DATABASE_PATH)
         self.audio_processor = AudioProcessor(
-            Config.RECORDINGS_PATH, 
-            Config.AUDIO_QUALITY, 
-            Config.AUDIO_FORMAT
+            self.config.RECORDINGS_PATH, 
+            self.config.AUDIO_QUALITY, 
+            self.config.AUDIO_FORMAT
         )
-        self.file_server = FileServer(Config.RECORDINGS_PATH)
+        self.file_server = FileServer(self.config.RECORDINGS_PATH)
         
         # Recording state
         self.active_recordings: Dict[int, Dict] = {}  # guild_id -> recording_info
         self.recording_tasks: Dict[int, asyncio.Task] = {}  # guild_id -> processing_task
         
         # Ensure recordings directory exists
-        os.makedirs(Config.RECORDINGS_PATH, exist_ok=True)
+        os.makedirs(self.config.RECORDINGS_PATH, exist_ok=True)
     
     async def setup_hook(self):
         """Setup hook called when bot starts"""
@@ -61,7 +62,7 @@ class VoiceRecordingBot(commands.Bot):
         
         try:
             # Start file server
-            await self.file_server.start(Config.WEB_SERVER_HOST, Config.WEB_SERVER_PORT)
+            await self.file_server.start(self.config.WEB_SERVER_HOST, self.config.WEB_SERVER_PORT)
             logger.info("File server started successfully")
         except Exception as e:
             logger.error(f"File server startup failed: {e}")
@@ -91,10 +92,12 @@ class VoiceRecordingBot(commands.Bot):
         logger.info(f'Bot is in {len(self.guilds)} guilds')
         
         # Set bot status
+        activity_config = self.config.get('discord.activity')
+        activity_type = getattr(discord.ActivityType, activity_config['type'], discord.ActivityType.listening)
         await self.change_presence(
             activity=discord.Activity(
-                type=discord.ActivityType.listening,
-                name="voice channels | /join to start recording"
+                type=activity_type,
+                name=activity_config['name']
             )
         )
     
@@ -280,7 +283,8 @@ from commands import *
 if __name__ == "__main__":
     try:
         logger.info("Starting Discord Voice Recording Bot...")
-        bot.run(Config.DISCORD_TOKEN)
+        config = get_config()
+        bot.run(config.DISCORD_TOKEN)
     except KeyboardInterrupt:
         logger.info("Bot interrupted by user")
     except discord.LoginFailure as e:

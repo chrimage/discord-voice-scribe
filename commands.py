@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List
 
 from bot import bot
-from config import Config
+from config import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -323,10 +323,9 @@ async def download_command(interaction: discord.Interaction, recording_id: int):
         await bot.db.create_download_token(token, recording_id, interaction.user.id, expires_at)
         
         # Generate download URL
-        download_url = bot.file_server.get_download_url(
-            token,
-            f"http://localhost:{Config.WEB_SERVER_PORT}"  # In production, use actual domain
-        )
+        config = get_config()
+        base_url = config.get_base_url()
+        download_url = bot.file_server.get_download_url(token, base_url)
         
         # Create embed
         embed = discord.Embed(
